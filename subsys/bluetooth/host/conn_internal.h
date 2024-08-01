@@ -187,7 +187,12 @@ struct acl_data {
 	struct bt_buf_data buf_data;
 
 	/* Index into the bt_conn storage array */
-	uint8_t  index;
+	uint8_t index;
+
+	/** Host has already sent a Host Number of Completed Packets
+	 *  for this buffer.
+	 */
+	bool host_ncp_sent;
 
 	/** ACL connection handle */
 	uint16_t handle;
@@ -547,5 +552,11 @@ void bt_conn_tx_processor(void);
 
 /* To be called by upper layers when they want to send something.
  * Functions just like an IRQ.
+ *
+ * Note: This fn will take and hold a reference to `conn` until the IRQ for that
+ * conn is serviced.
+ * For the current implementation, that means:
+ * - ref the conn when putting on an "conn-ready" slist
+ * - unref the conn when popping the conn from the slist
  */
 void bt_conn_data_ready(struct bt_conn *conn);

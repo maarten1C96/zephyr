@@ -113,14 +113,14 @@ static struct net_pkt *eth_esp32_rx(
 	struct net_pkt *pkt = net_pkt_rx_alloc_with_buffer(
 		dev_data->iface, receive_len, AF_UNSPEC, 0, K_MSEC(100));
 	if (pkt == NULL) {
-		eth_stats_update_errors_rx(ctx->iface);
+		eth_stats_update_errors_rx(dev_data->iface);
 		LOG_ERR("Could not allocate rx buffer");
 		return NULL;
 	}
 
 	if (net_pkt_write(pkt, dev_data->rxb, receive_len) != 0) {
 		LOG_ERR("Unable to write frame into the pkt");
-		eth_stats_update_errors_rx(ctx->iface);
+		eth_stats_update_errors_rx(dev_data->iface);
 		net_pkt_unref(pkt);
 		return NULL;
 	}
@@ -353,6 +353,12 @@ err:
 	return res;
 }
 
+static const struct device *eth_esp32_phy_get(const struct device *dev)
+{
+	ARG_UNUSED(dev);
+	return eth_esp32_phy_dev;
+}
+
 static void eth_esp32_iface_init(struct net_if *iface)
 {
 	const struct device *dev = net_if_get_device(iface);
@@ -381,6 +387,7 @@ static const struct ethernet_api eth_esp32_api = {
 	.iface_api.init		= eth_esp32_iface_init,
 	.get_capabilities	= eth_esp32_caps,
 	.set_config		= eth_esp32_set_config,
+	.get_phy		= eth_esp32_phy_get,
 	.send			= eth_esp32_send,
 };
 
